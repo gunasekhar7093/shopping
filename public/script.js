@@ -236,7 +236,11 @@ document.getElementById("connectionStatus").innerHTML=
 
 
 localStream = await navigator.mediaDevices.getUserMedia({
-audio:true
+audio:{
+echoCancellation:true,
+noiseSuppression:true,
+autoGainControl:true
+}
 });
 
 
@@ -337,7 +341,11 @@ document.getElementById("connectionStatus").innerHTML=
 
 
 localStream = await navigator.mediaDevices.getUserMedia({
-audio:true
+audio:{
+echoCancellation:true,
+noiseSuppression:true,
+autoGainControl:true
+}
 });
 
 
@@ -595,4 +603,5 @@ stopCallUI();
 
 
 });
+
 
