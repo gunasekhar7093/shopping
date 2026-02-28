@@ -251,7 +251,13 @@ peer.addTrack(track,localStream);
 
 peer.ontrack=e=>{
 
-document.getElementById("remoteAudio").srcObject=e.streams[0];
+let audio=document.getElementById("remoteAudio");
+
+audio.srcObject=e.streams[0];
+
+audio.play().catch(e=>{
+console.log("Audio play error:",e);
+});
 
 document.getElementById("callStatus").innerHTML="Connected";
 
@@ -345,10 +351,15 @@ peer.addTrack(track,localStream);
 
 peer.ontrack=e=>{
 
-document.getElementById("remoteAudio").srcObject=e.streams[0];
+let audio=document.getElementById("remoteAudio");
 
-document.getElementById("callStatus").innerHTML=
-"Connected";
+audio.srcObject=e.streams[0];
+
+audio.play().catch(e=>{
+console.log("Audio play error:",e);
+});
+
+document.getElementById("callStatus").innerHTML="Connected";
 
 document.getElementById("connectionStatus").innerHTML=
 "🟢 Connected";
@@ -584,3 +595,4 @@ stopCallUI();
 
 
 });
+
