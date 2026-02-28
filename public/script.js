@@ -105,10 +105,22 @@ reconnecting=false;
 /* STUN SERVER */
 
 const configuration = {
+
 iceServers: [
-{ urls: "stun:stun.l.google.com:19302" },
-{ urls: "stun:stun1.l.google.com:19302" }
+
+{
+urls: [
+"stun:stun.l.google.com:19302",
+"stun:stun1.l.google.com:19302",
+"stun:stun2.l.google.com:19302",
+"stun:stun3.l.google.com:19302"
 ]
+}
+
+],
+
+iceCandidatePoolSize: 10
+
 };
 
 
@@ -429,8 +441,18 @@ stopCallUI();
 
 socket.on("iceCandidate", async candidate=>{
 
-if(peer){
-await peer.addIceCandidate(candidate);
+try{
+
+if(peer && candidate){
+
+await peer.addIceCandidate(new RTCIceCandidate(candidate));
+
+}
+
+}catch(e){
+
+console.log("ICE error",e);
+
 }
 
 });
@@ -559,5 +581,6 @@ stopCallUI();
 },1500);
 
 }
+
 
 });
