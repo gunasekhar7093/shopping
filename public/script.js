@@ -1,4 +1,6 @@
-const socket = io();
+const socket = io({
+transports:["websocket"]
+});
 
 /* VARIABLES */
 let reconnectAttempts = 0;
@@ -239,7 +241,10 @@ localStream = await navigator.mediaDevices.getUserMedia({
 audio:{
 echoCancellation:true,
 noiseSuppression:true,
-autoGainControl:true
+autoGainControl:true,
+sampleRate:48000,
+channelCount:1,
+latency:0.02
 }
 });
 
@@ -258,6 +263,10 @@ peer.ontrack=e=>{
 let audio=document.getElementById("remoteAudio");
 
 audio.srcObject=e.streams[0];
+
+audio.volume=1.0;
+
+audio.muted=false;
 
 audio.play().catch(e=>{
 console.log("Audio play error:",e);
@@ -344,12 +353,29 @@ localStream = await navigator.mediaDevices.getUserMedia({
 audio:{
 echoCancellation:true,
 noiseSuppression:true,
-autoGainControl:true
+autoGainControl:true,
+sampleRate:48000,
+channelCount:1,
+latency:0.02
 }
 });
 
 
-peer = new RTCPeerConnection(configuration);
+peer = new RTCPeerConnection({
+
+iceServers: [
+{
+urls:[
+"stun:stun.l.google.com:19302",
+"stun:stun1.l.google.com:19302",
+"stun:stun2.l.google.com:19302"
+]
+}
+],
+
+iceCandidatePoolSize: 10
+
+});
 
 
 localStream.getTracks().forEach(track=>{
@@ -603,5 +629,6 @@ stopCallUI();
 
 
 });
+
 
 
