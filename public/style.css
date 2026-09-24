@@ -72,7 +72,32 @@ font-size:20px;
 
 text-align:center;
 
+position:relative;
 }
+.soundToggle{
+
+position:absolute;
+right:15px;
+top:50%;
+transform:translateY(-50%);
+
+background:transparent;
+border:none;
+
+color:white;
+font-size:24px;
+
+padding:5px 8px;
+
+cursor:pointer;
+
+}
+
+.soundToggle:active{
+transform:translateY(-50%) scale(0.9);
+}
+
+
 
 
 
