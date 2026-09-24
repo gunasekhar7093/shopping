@@ -674,15 +674,15 @@ btn.classList.remove("muteOff");
 
 function endCall(){
 
-// Give the person who pressed End Call a single vibration too,
-// so both parties get a clear call-ended indication.
-notifyCallEndedVibration();
-
 socket.emit("endCall",{
 to:callerID
 });
 
 stopCallUI();
+
+// stopCallUI() cancels any active vibration, so trigger the
+// short call-ended vibration after cleanup.
+notifyCallEndedVibration();
 
 }
 
