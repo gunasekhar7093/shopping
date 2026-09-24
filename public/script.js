@@ -257,84 +257,96 @@ callerName=name;
 document.getElementById("callScreen").style.display="block";
 
 document.getElementById("callUserName").innerHTML=name;
+document.getElementById("callStatus").innerHTML="Preparing call...";
+document.getElementById("connectionStatus").innerHTML="🟡 Preparing";
 
-document.getElementById("callStatus").innerHTML="Calling...";
+try {
+    // Microphone permission is required on the caller before WebRTC can start.
+    localStream = await navigator.mediaDevices.getUserMedia({
+        audio:{
+            echoCancellation:true,
+            noiseSuppression:true,
+            autoGainControl:true,
+            sampleRate:48000,
+            channelCount:1,
+            latency:0.02
+        }
+    });
 
-document.getElementById("connectionStatus").innerHTML=
-"🟡 Calling";
+    peer = new RTCPeerConnection(configuration);
+    monitorConnection();
 
+    localStream.getTracks().forEach(track=>{
+        peer.addTrack(track,localStream);
+    });
 
-localStream = await navigator.mediaDevices.getUserMedia({
-audio:{
-echoCancellation:true,
-noiseSuppression:true,
-autoGainControl:true,
-sampleRate:48000,
-channelCount:1,
-latency:0.02
+    peer.ontrack=e=>{
+        let audio=document.getElementById("remoteAudio");
+        audio.srcObject=e.streams[0];
+        audio.volume=1.0;
+        audio.muted=false;
+        audio.play().catch(e=>console.log("Audio play error:",e));
+
+        document.getElementById("callStatus").innerHTML="Connected";
+        document.getElementById("connectionStatus").innerHTML="🟢 Connected";
+        startTimer();
+    };
+
+    peer.onicecandidate=e=>{
+        if(e.candidate){
+            socket.emit("iceCandidate",{
+                to:id,
+                candidate:e.candidate
+            });
+        }
+    };
+
+    let offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+
+    document.getElementById("callStatus").innerHTML="Calling...";
+    document.getElementById("connectionStatus").innerHTML="🟡 Calling";
+
+    socket.emit("callUser",{
+        to:id,
+        offer:offer
+    }, (result) => {
+        if (!result || !result.ok) {
+            document.getElementById("callStatus").innerHTML =
+                "Could not reach user";
+            document.getElementById("connectionStatus").innerHTML = "🔴 Not delivered";
+        }
+    });
+
+} catch(error) {
+    console.error("Could not start call:", error);
+
+    let message = "Could not start call";
+
+    if(error.name === "NotAllowedError" || error.name === "PermissionDeniedError"){
+        message = "Microphone permission denied";
+    } else if(error.name === "NotFoundError" || error.name === "DevicesNotFoundError"){
+        message = "No microphone found";
+    } else if(error.name === "NotReadableError" || error.name === "TrackStartError"){
+        message = "Microphone is being used by another app";
+    } else if(error.name === "SecurityError"){
+        message = "Microphone requires HTTPS";
+    }
+
+    document.getElementById("callStatus").innerHTML = message;
+    document.getElementById("connectionStatus").innerHTML = "🔴 Call not sent";
+
+    if(peer){
+        peer.close();
+        peer=null;
+    }
+
+    if(localStream){
+        localStream.getTracks().forEach(track=>track.stop());
+        localStream=null;
+    }
 }
-});
-
-
-peer = new RTCPeerConnection(configuration);
-
-monitorConnection();
-
-localStream.getTracks().forEach(track=>{
-peer.addTrack(track,localStream);
-});
-
-
-peer.ontrack=e=>{
-
-let audio=document.getElementById("remoteAudio");
-
-audio.srcObject=e.streams[0];
-
-audio.volume=1.0;
-
-audio.muted=false;
-
-audio.play().catch(e=>{
-console.log("Audio play error:",e);
-});
-
-document.getElementById("callStatus").innerHTML="Connected";
-
-document.getElementById("connectionStatus").innerHTML=
-"🟢 Connected";
-
-startTimer();
-
-};
-
-
-peer.onicecandidate=e=>{
-
-if(e.candidate){
-
-socket.emit("iceCandidate",{
-to:id,
-candidate:e.candidate
-});
-
 }
-
-};
-
-
-let offer = await peer.createOffer();
-
-await peer.setLocalDescription(offer);
-
-
-socket.emit("callUser",{
-to:id,
-offer:offer
-});
-
-}
-
 
 /* INCOMING CALL */
 
