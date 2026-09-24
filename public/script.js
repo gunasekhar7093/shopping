@@ -253,7 +253,7 @@ function notifyCallEndedVibration(){
 
 if("vibrate" in navigator){
 
-navigator.vibrate(500);
+navigator.vibrate(120);
 
 }
 
