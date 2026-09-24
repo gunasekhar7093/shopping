@@ -247,6 +247,18 @@ navigator.vibrate(0);
 
 }
 
+/* CALL ENDED NOTIFICATION */
+
+function notifyCallEndedVibration(){
+
+if("vibrate" in navigator){
+
+navigator.vibrate(500);
+
+}
+
+}
+
 
 /* JOIN */
 
@@ -662,6 +674,10 @@ btn.classList.remove("muteOff");
 
 function endCall(){
 
+// Give the person who pressed End Call a single vibration too,
+// so both parties get a clear call-ended indication.
+notifyCallEndedVibration();
+
 socket.emit("endCall",{
 to:callerID
 });
@@ -674,6 +690,9 @@ stopCallUI();
 /* RECEIVE END CALL */
 
 socket.on("callEnded", ()=>{
+
+// The other party ended the call. Give one short vibration as an alert.
+notifyCallEndedVibration();
 
 document.getElementById("callStatus").innerHTML=
 "Call Ended";
