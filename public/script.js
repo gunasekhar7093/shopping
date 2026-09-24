@@ -3,6 +3,42 @@ transports:["websocket"]
 });
 
 /* VARIABLES */
+let onlineUsers = {};
+
+function renderUsers(users){
+
+onlineUsers = users || {};
+
+let div="";
+
+for(let id in onlineUsers){
+
+if(onlineUsers[id] !== myName){
+
+div += `
+<div class="userRow" data-user-id="${id}">
+
+${onlineUsers[id]}
+
+<button class="callBtn"
+onclick="callUser('${id}','${onlineUsers[id]}')">
+
+📞 Call
+
+</button>
+
+</div>
+`;
+
+}
+
+}
+
+document.getElementById("users").innerHTML=div;
+
+}
+
+
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 5;
 let reconnecting = false;
@@ -189,34 +225,7 @@ document.getElementById("main").style.display="block";
 /* USER LIST */
 
 socket.on("users", users => {
-
-let div="";
-
-for(let id in users){
-
-if(users[id] !== myName){
-
-div += `
-<div class="userRow">
-
-${users[id]}
-
-<button class="callBtn"
-onclick="callUser('${id}','${users[id]}')">
-
-📞 Call
-
-</button>
-
-</div>
-`;
-
-}
-
-}
-
-document.getElementById("users").innerHTML=div;
-
+renderUsers(users);
 });
 
 
@@ -609,6 +618,10 @@ document.getElementById("connectionStatus").innerHTML=
 
 /* userDisconnected */
 socket.on("userDisconnected", (id)=>{
+
+// Remove the user from the visible online list immediately.
+delete onlineUsers[id];
+renderUsers(onlineUsers);
 
 // If the disconnected user was in call
 if(id === callerID){
