@@ -244,6 +244,17 @@ document.getElementById("main").style.display="block";
 }
 
 
+/* SOCKET RECONNECT / RE-JOIN */
+
+// Mobile browsers can disconnect the Socket.IO connection when Chrome is backgrounded.
+// When the connection returns, register the current user again with the new socket ID.
+socket.on("connect", () => {
+    if (myName) {
+        socket.emit("join", myName);
+    }
+});
+
+
 /* USER LIST */
 
 socket.on("users", users => {
