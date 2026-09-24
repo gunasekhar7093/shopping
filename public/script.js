@@ -45,6 +45,7 @@ let reconnecting = false;
 
 let muted = false;
 let ringtone;
+let incomingSoundEnabled = true;
 
 let timerInterval = null;
 let seconds = 0;
@@ -214,6 +215,23 @@ myName = document.getElementById("name").value;
 
 ringtone = document.getElementById("ringtone");
 
+// Prime the ringtone after the Join button gesture for mobile autoplay policies.
+try {
+    ringtone.muted = true;
+    const unlock = ringtone.play();
+    if (unlock && unlock.then) {
+        unlock.then(() => {
+            ringtone.pause();
+            ringtone.currentTime = 0;
+            ringtone.muted = false;
+        }).catch(() => {
+            ringtone.muted = false;
+        });
+    }
+} catch(e) {
+    ringtone.muted = false;
+}
+
 socket.emit("join", myName);
 
 document.getElementById("login").style.display="none";
@@ -324,18 +342,43 @@ socket.on("incomingCall", data=>{
 
 callerID=data.from;
 callerName=data.name;
+window.offer=data.offer;
 
-ringtone.play();
-
+// Always show the incoming-call UI first. Ringtone failure must not block it.
 document.getElementById("incomingCall").style.display="block";
 
 document.getElementById("callerName").innerHTML=
 callerName + " is calling";
 
-window.offer=data.offer;
+if (incomingSoundEnabled && ringtone) {
+    ringtone.currentTime = 0;
+    ringtone.play().catch(e => {
+        console.log("Ringtone could not play:", e);
+    });
+}
 
 });
 
+
+function toggleIncomingSound(){
+
+incomingSoundEnabled = !incomingSoundEnabled;
+
+const btn = document.getElementById("soundToggle");
+
+if (incomingSoundEnabled) {
+    btn.innerHTML = "🔔";
+    btn.title = "Incoming call sound: On";
+} else {
+    btn.innerHTML = "🔕";
+    btn.title = "Incoming call sound: Off";
+    if (ringtone) {
+        ringtone.pause();
+        ringtone.currentTime = 0;
+    }
+}
+
+}
 
 /* ACCEPT CALL */
 
