@@ -25,15 +25,23 @@ io.on("connection", socket => {
 
     /* CALL USER */
 
-    socket.on("callUser", data => {
+    socket.on("callUser", (data, callback) => {
+
+        const targetExists = io.sockets.sockets.has(data.to);
+
+        if (!targetExists) {
+            if (typeof callback === "function") callback({ ok: false });
+            return;
+        }
 
         io.to(data.to).emit("incomingCall", {
-
             from: socket.id,
             name: users[socket.id],
             offer: data.offer
-
         });
+
+        // Confirm the target socket is connected and the event was emitted.
+        if (typeof callback === "function") callback({ ok: true });
 
     });
 
