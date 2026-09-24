@@ -46,6 +46,7 @@ let reconnecting = false;
 let muted = false;
 let ringtone;
 let incomingSoundEnabled = true;
+let vibrationTimer = null;
 
 let timerInterval = null;
 let seconds = 0;
@@ -102,7 +103,7 @@ document.getElementById("connectionStatus").innerHTML =
 
 }
 
-/* tryReconnectR */
+
 function tryReconnect(){
 
 if(reconnectAttempts >= maxReconnectAttempts){
@@ -141,6 +142,7 @@ reconnecting=false;
 
 }
 
+
 /* STUN SERVER */
 
 const configuration = {
@@ -148,6 +150,7 @@ const configuration = {
 iceServers: [
 
 {
+
 urls: [
 "stun:stun.l.google.com:19302",
 "stun:stun1.l.google.com:19302",
@@ -203,6 +206,44 @@ timerInterval=null;
 seconds=0;
 
 document.getElementById("callTimer").innerHTML="00:00";
+
+}
+
+
+/* INCOMING CALL VIBRATION */
+
+function startIncomingVibration(){
+
+if(!("vibrate" in navigator)) return;
+
+stopIncomingVibration();
+
+const pulse = () => {
+
+navigator.vibrate([500,300,500,300]);
+
+vibrationTimer = setTimeout(pulse,1600);
+
+};
+
+pulse();
+
+}
+
+function stopIncomingVibration(){
+
+if(vibrationTimer){
+
+clearTimeout(vibrationTimer);
+vibrationTimer=null;
+
+}
+
+if("vibrate" in navigator){
+
+navigator.vibrate(0);
+
+}
 
 }
 
@@ -377,6 +418,9 @@ document.getElementById("incomingCall").style.display="block";
 document.getElementById("callerName").innerHTML=
 callerName + " is calling";
 
+// Start vibration independently from the ringtone so one cannot block the other.
+startIncomingVibration();
+
 if (incomingSoundEnabled && ringtone) {
     ringtone.currentTime = 0;
     ringtone.play().catch(e => {
@@ -407,9 +451,12 @@ if (incomingSoundEnabled) {
 
 }
 
+
 /* ACCEPT CALL */
 
 async function acceptCall(){
+
+stopIncomingVibration();
 
 ringtone.pause();
 ringtone.currentTime=0;
@@ -467,7 +514,6 @@ peer.ontrack=e=>{
 let audio=document.getElementById("remoteAudio");
 
 audio.srcObject=e.streams[0];
-
 audio.play().catch(e=>{
 console.log("Audio play error:",e);
 });
@@ -532,6 +578,8 @@ startTimer();
 /* REJECT CALL */
 
 function rejectCall(){
+
+stopIncomingVibration();
 
 socket.emit("rejectCall",{
 to:callerID
@@ -657,6 +705,10 @@ ringtone.pause();
 ringtone.currentTime=0;
 }
 
+/* Stop Vibration */
+
+stopIncomingVibration();
+
 /* Close WebRTC */
 
 if(peer){
@@ -720,6 +772,5 @@ stopCallUI();
 
 
 });
-
 
 
