@@ -616,6 +616,14 @@ document.getElementById("connectionStatus").innerHTML=
 
 }
 
+/* PAGE CLOSE / LEAVE */
+window.addEventListener("pagehide", () => {
+    if (socket.connected) {
+        socket.disconnect();
+    }
+});
+
+
 /* userDisconnected */
 socket.on("userDisconnected", (id)=>{
 
