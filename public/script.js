@@ -211,7 +211,11 @@ document.getElementById("callTimer").innerHTML="00:00";
 
 function join(){
 
-myName = document.getElementById("name").value;
+myName = document.getElementById("name").value.trim();
+
+// Show the first letter of the logged-in user in the navbar.
+const avatar = document.getElementById("userAvatar");
+avatar.innerHTML = myName ? myName.charAt(0).toUpperCase() : "?";
 
 ringtone = document.getElementById("ringtone");
 
